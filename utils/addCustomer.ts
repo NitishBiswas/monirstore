@@ -24,5 +24,6 @@ export async function addCustomer(name: string, phone: string): Promise<void> {
         console.log('Customer added successfully');
     } catch (e) {
         console.error('Error adding customer: ', e);
+        throw new Error('Customer is not added!');
     }
 }

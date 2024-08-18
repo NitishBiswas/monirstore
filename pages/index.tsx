@@ -22,6 +22,7 @@ import { markTransactionAsDeleted } from '@/utils/markTransactionAsDeleted';
 import CustomButton from '@/components/CustomButton';
 import DeleteModal from '@/components/DeleteModal';
 import useLongPress from '@/hooks/useLongPress';
+import { deleteCustomer } from '@/utils/deleteCustomer';
 
 const Home = () => {
     const [customers, setCustomers] = useState<Customer[]>([]);
@@ -36,8 +37,8 @@ const Home = () => {
     const [paymentType, setPaymentType] = useState("purchase");
     const route = useRouter();
     const [deleteModal, setDeleteModal] = useState(false);
+    const [deleteCustomerModal, setDeleteCustomerModal] = useState(false);
     const longPressEvent = useLongPress(() => setDeleteModal(true), 500);
-
 
     const handleAddAmount = async () => {
         try {
@@ -81,6 +82,22 @@ const Home = () => {
         } else {
             toast.error('Something went wrong!');
         }
+    };
+
+    const handleDeleteCustomer = async (phone: string) => {
+        try {
+            setLoading(true); // Start loading
+            await deleteCustomer(phone);
+            fetchCustomers(); // Fetch updated customer data
+            toast.success('গ্রাহকটি মুছে ফেলা হয়েছে!');
+            setDeleteCustomerModal(false);
+        } catch (error: any) {
+            console.log(error);
+            toast.error(error?.message || 'Failed to delete the transaction!');
+        } finally {
+            setLoading(false); // End loading after deletion
+        }
+
     };
 
     const fetchCustomers = async () => {
@@ -213,19 +230,25 @@ const Home = () => {
                     <div className='flex flex-col gap-[10px] mt-[20px] mb-[40px]'>
                         {customers?.length > 0 ? customers?.map((customer, index) => {
                             return (
-                                <div onClick={() => {
-                                    route.push(`/details/${customer?.phone}`);
-                                }} key={index} className='bg-black-100/70 rounded-[8px] p-[10px]'>
+                                <div key={index} className='bg-black-100/70 rounded-[8px] p-[10px]'>
                                     <div className='w-full flex items-center justify-between gap-[10px] text-white'>
-                                        <div className='text-large'>{customer?.name}</div>
-                                        <div onClick={() => window.open(`tel:${customer?.phone}`)} className='cursor-pointer flex items-center justify-center bg-white text-primary shadow-lg rounded-full p-[6px]'>
-                                            <Call size={20} />
+                                        <div onClick={() => {
+                                            route.push(`/details/${customer?.phone}`);
+                                        }} className='text-large'>{customer?.name}</div>
+                                        <div className='flex items-center gap-[10px]'>
+                                            <div onClick={() => window.open(`tel:${customer?.phone}`)} className='cursor-pointer flex items-center justify-center bg-white text-primary shadow-lg rounded-full p-[6px]'>
+                                                <Call size={20} />
+                                            </div>
+                                            <CustomButton title='ডিলিট' color='error' onClick={() => setDeleteCustomerModal(true)} />
                                         </div>
                                     </div>
-                                    <div className='flex items-center justify-between mt-[10px]'>
+                                    <div onClick={() => {
+                                        route.push(`/details/${customer?.phone}`);
+                                    }} className='flex items-center justify-between mt-[10px]'>
                                         <div className='text-gray-400'>{customer?.createdAt}</div>
                                         <div className='text-medium font-[500] text-gray-400'>বকেয়া: <span className='text-error'>{customer?.totalDue || 0} টাকা</span></div>
                                     </div>
+                                    <DeleteModal showDeleteModal={deleteCustomerModal} setShowDeleteModal={setDeleteCustomerModal} handleDelete={() => handleDeleteCustomer(customer?.phone)} />
                                 </div>
                             )
                         }) : <div className='w-full mt-[40px] bg-black-100/70 text-error text-center py-[30px] px-[10px] rounded-[8px] text-2xl'>গ্রাহক নাই!</div>}

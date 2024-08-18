@@ -21,9 +21,9 @@ export function calculateIndividualTotalDue(transactions: Transaction[]): number
     let totalDue = 0;
 
     transactions.forEach(transaction => {
-        if (transaction.type === 'purchase') {
+        if (transaction.type === 'purchase' && transaction?.isDeleted === "") {
             totalDue += transaction.amount;
-        } else if (transaction.type === 'payment') {
+        } else if (transaction.type === 'payment' && transaction?.isDeleted === "") {
             totalDue -= transaction.amount;
         }
     });
@@ -40,9 +40,9 @@ export async function calculateTotalDue(customers: Customer[]): Promise<number> 
         const transactions = await getCustomerTransactions(customer.phone);
 
         transactions.forEach(transaction => {
-            if (transaction.type === 'purchase') {
+            if (transaction.type === 'purchase' && transaction?.isDeleted === "") {
                 totalDue += transaction.amount;
-            } else if (transaction.type === 'payment') {
+            } else if (transaction.type === 'payment' && transaction?.isDeleted === "") {
                 totalDue -= transaction.amount;
             }
         });

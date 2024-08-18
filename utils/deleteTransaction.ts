@@ -8,5 +8,6 @@ export async function deleteTransaction(phone: string, transactionId: string): P
         console.log(`Transaction ${transactionId} permanently deleted.`);
     } catch (error: any) {
         console.error('Error deleting transaction: ', error.message);
+        throw new Error('Transaction is not deleted!');
     }
 }

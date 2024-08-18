@@ -34,5 +34,6 @@ export async function addTransaction(
         console.log('Transaction added successfully');
     } catch (e) {
         console.error('Error adding transaction: ', e);
+        throw new Error('Transaction is not added!');
     }
 }
