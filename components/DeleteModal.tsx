@@ -8,16 +8,16 @@ interface IDeleteModal {
     title?: string;
 }
 
-const DeleteModal = ({ handleDelete, showDeleteModal, setShowDeleteModal, title = 'Are you sure you want to delete this ?' }: IDeleteModal) => {
+const DeleteModal = ({ handleDelete, showDeleteModal, setShowDeleteModal, title = 'আপনি কি লেনদেনটি ডিলিট করতে চান?' }: IDeleteModal) => {
     return (
         <ParentModal
             showModal={showDeleteModal}
             setShowModal={setShowDeleteModal}
             submitButton={true}
-            submitButtonText='Yes'
-            closeButtonText='No'
+            submitButtonText='হ্যাঁ'
+            closeButtonText='না'
             handleSubmit={handleDelete}
-            title={"Delete"}
+            title={"ডিলিট"}
             primaryColor='#f04d58'
             className='!min-w-[77%] sm:!min-w-[70%] md:!min-w-[40%] lg:!min-w-[30vw] xl:!min-w-[20vw]'
             warning={true}

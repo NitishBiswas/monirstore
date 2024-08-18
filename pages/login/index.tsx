@@ -23,12 +23,12 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
 
     const adminValidation = Yup.object({
-        phone: Yup.string().required('Phone number is required!'),
-        password: Yup.string().required('Password is required!'),
+        phone: Yup.string().required('ফোন নাম্বার দরকার!'),
+        password: Yup.string().required('পাসওয়ার্ড দরকার!'),
     });
 
     const customerValidation = Yup.object({
-        phone: Yup.string().required('Phone number is required!'),
+        phone: Yup.string().required('ফোন নাম্বার দরকার!'),
     });
 
     const formik = useFormik({
@@ -45,23 +45,23 @@ const Login = () => {
                     const adminRef = doc(db, 'admin', phone);
                     const adminDoc = await getDoc(adminRef);
                     if (!adminDoc.exists()) {
-                        throw new Error('Admin not found!');
+                        throw new Error('মালিক পাওয়া যাচ্ছে না!');
                     }
                     const adminData = adminDoc.data();
                     if (adminData.password === password) {
-                        toast.success("Login successful!");
+                        toast.success("লগইন সফল হয়েছে!");
                         localStorage.setItem('monir', userType);
                         route.push('/');
                     } else {
-                        throw new Error('Invalid password!');
+                        throw new Error('ভুল পাসওয়ার্ড!');
                     }
                 } else {
                     const customerRef = doc(db, 'customers', phone);
                     const customerDoc = await getDoc(customerRef);
                     if (!customerDoc.exists()) {
-                        throw new Error('Customer not found!');
+                        throw new Error('গ্রাহক পাওয়া যাচ্ছে না!');
                     }
-                    toast.success("Login successful!");
+                    toast.success("লগইন সফল হয়েছে!");
                     localStorage.setItem('monir', userType);
                     localStorage.setItem('customer', phone);
                     route.push('/');
@@ -106,15 +106,15 @@ const Login = () => {
                         <Image src={LOGO} alt='logo' width={250} />
                     </div>
                     <div className='w-full flex items-center gap-[20px]'>
-                        <RadioButton title='Admin' checked={userType === "Admin"} setChecked={() => setUserType("Admin")} />
-                        <RadioButton title='Customer' checked={userType === "Customer"} setChecked={() => setUserType("Customer")} />
+                        <RadioButton title='মালিক' checked={userType === "Admin"} setChecked={() => setUserType("Admin")} />
+                        <RadioButton title='গ্রাহক' checked={userType === "Customer"} setChecked={() => setUserType("Customer")} />
                     </div>
                     <div className='h-[calc(100%-80px)] flex flex-col justify-center'>
-                        <div className='ml-12px] h-[25px] w-[122px] flex items-center justify-center text-center text-white bg-primary text-[14px]'>Phone Number</div>
+                        <div className='ml-12px] h-[25px] w-[122px] flex items-center justify-center text-center text-white bg-primary text-[14px]'>ফোন নাম্বার</div>
                         <div className='w-full flex flex-col gap-[20px]'>
                             <CustomInput
                                 leftIcon={<Call />}
-                                label="Phone Number"
+                                label="ফোন নাম্বার"
                                 type="text"
                                 fieldTitle="phone"
                                 setFieldValue={setFieldValue}
@@ -122,10 +122,11 @@ const Login = () => {
                                 touched={touched.phone}
                                 error={errors.phone}
                                 handleBlur={handleBlur}
+                                placeholder='ফোন নাম্বার'
                             />
                             {userType === "Admin" && <CustomInput
                                 leftIcon={<Lock1 />}
-                                label="Password"
+                                label="পাসওয়ার্ড"
                                 type="password"
                                 fieldTitle="password"
                                 setFieldValue={setFieldValue}
@@ -133,12 +134,13 @@ const Login = () => {
                                 touched={touched.password}
                                 error={errors.password}
                                 handleBlur={handleBlur}
+                                placeholder='পাসওয়ার্ড'
                             />}
                         </div>
                         <div className='w-full flex items-center justify-between gap-[5px] mt-[16px]'>
-                            <CheckboxButton title='Remember me' checked={checked} setChecked={setChecked} />
+                            <CheckboxButton title='আমাকে মনে রাখবেন' checked={checked} setChecked={setChecked} />
                         </div>
-                        <CustomButton onClick={handleSubmit} title={'Login'} size='large' className='mt-[20px]' />
+                        <CustomButton onClick={handleSubmit} title={'লগইন'} size='large' className='mt-[20px]' />
                     </div>
                 </div>
             </div>

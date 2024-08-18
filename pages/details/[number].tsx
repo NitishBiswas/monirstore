@@ -9,6 +9,11 @@ import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
 import { toast } from 'react-toastify';
 import BG from '@/assets/images/bg.jpg';
+import useLongPress from '@/hooks/useLongPress';
+import DeleteModal from '@/components/DeleteModal';
+import CustomButton from '@/components/CustomButton';
+import { markTransactionAsDeleted } from '@/utils/markTransactionAsDeleted';
+import { deleteTransaction } from '@/utils/deleteTransaction';
 
 const CustomerDetals = () => {
     const [customer, setCustomer] = useState<CustomerWithTransactions | null>(null);
@@ -18,6 +23,11 @@ const CustomerDetals = () => {
     const [paymentType, setPaymentType] = useState("purchase");
     const params = useParams();
     const phone = params?.number ? Array.isArray(params.number) ? params?.number[0] : params?.number : "";
+    const [deleteModal, setDeleteModal] = useState(false);
+
+    const longPressEvent = useLongPress(() => setDeleteModal(true), 500);
+
+    console.log(customer);
 
     const fetchCustomer = async (phone: string) => {
         setLoading(true); // Start loading
@@ -49,7 +59,7 @@ const CustomerDetals = () => {
                 if (hasBanglaNumbers) {
                     amount = convertBanglaToEnglishNumber(paymentAmount);
                 }
-                await addTransaction(phone, parseInt(amount), paymentType);
+                await addTransaction(phone, parseInt(amount), paymentType, "মালিক", "");
                 fetchCustomer(phone);
                 toast.success(`টাকা ${paymentType === "purchase" ? "বিয়োগ" : "যোগ"} হয়েছে!`);
                 setPaymentAmount("");
@@ -63,6 +73,44 @@ const CustomerDetals = () => {
             setLoading(false); // End loading after handling transaction
         }
     }
+
+    const handleDeleteTransaction = async (transactionId: string) => {
+        if (customer?.phone) {
+            try {
+                setLoading(true); // Start loading
+                await markTransactionAsDeleted(customer?.phone, transactionId, "মালিক");
+                fetchCustomer(customer?.phone); // Fetch updated customer data
+                toast.success('লেনদেনটি মুছে ফেলা হয়েছে!');
+                setDeleteModal(false);
+            } catch (error: any) {
+                console.log(error);
+                toast.error(error?.message || 'Failed to delete the transaction!');
+            } finally {
+                setLoading(false); // End loading after deletion
+            }
+        } else {
+            toast.error('Something went wrong!');
+        }
+    };
+
+    const handlePermanentDeleteTransaction = async (transactionId: string) => {
+        if (customer?.phone) {
+            try {
+                setLoading(true); // Start loading
+                await deleteTransaction(customer?.phone, transactionId);
+                fetchCustomer(customer?.phone); // Fetch updated customer data
+                toast.success('লেনদেনটি মুছে ফেলা হয়েছে!');
+                setDeleteModal(false);
+            } catch (error: any) {
+                console.log(error);
+                toast.error(error?.message || 'Failed to delete the transaction!');
+            } finally {
+                setLoading(false); // End loading after deletion
+            }
+        } else {
+            toast.error('Something went wrong!');
+        }
+    };
 
     useEffect(() => {
         if (phone)
@@ -92,9 +140,19 @@ const CustomerDetals = () => {
                         <div className='flex flex-col gap-[10px] mt-[20px] mb-[40px]'>
                             {customer?.transactions?.length > 0 ? customer?.transactions?.map((trans, index) => {
                                 return (
-                                    <div key={index} className={`bg-black-100/70 rounded-[8px] p-[10px]`}>
-                                        <div className={`${trans?.type === "purchase" ? "text-error" : "text-primary"} text-2xl font-[500]`}>{trans?.type === "purchase" ? "বাকি" : "জমা"} : {trans?.amount} টাকা</div>
-                                        <div className='text-gray-500 mt-[10px]'>{trans?.date}</div>
+                                    <div key={index} className='relative overflow-hidden rounded-[8px]'>
+                                        <div {...longPressEvent} key={index} className={`select-none bg-black-100/70 p-[10px]`}>
+                                            <div className='flex items-start justify-between'>
+                                                <div className={`${trans?.type === "purchase" ? "text-error" : "text-primary"} text-2xl font-[500]`}>{trans?.type === "purchase" ? "বাকি" : "জমা"} : {trans?.amount} টাকা</div>
+                                                <CustomButton title='ডিলিট' color='error' onClick={() => setDeleteModal(true)} />
+                                            </div>
+                                            <div className='text-gray-500 mt-[10px] flex items-center justify-between'>
+                                                <div>{trans?.date}</div>
+                                                {trans?.addedBy && <div className={`text-xs text-white px-[5px] py-[1px] ${trans?.addedBy === "গ্রাহক" ? "bg-orange-500" : "bg-primary"}`}> লিখেছেন: {trans?.addedBy}</div>}
+                                            </div>
+                                            <DeleteModal showDeleteModal={deleteModal} setShowDeleteModal={setDeleteModal} handleDelete={() => handleDeleteTransaction(trans?.id || "")} />
+                                        </div>
+                                        {(trans?.isDeleted) && <div className='bg-error/20 absolute inset-0 z-[100000] backdrop-blur-[2px] text-white h-full w-full items-center justify-center flex flex-col gap-[10px]'>লেনদেনটি মুছে ফেলা হয়েছে! <div className='absolute bottom-1 text-xs w-full flex items-center justify-between'><span className="bg-primary px-[5px] py-[1px]">মুছে ফেলেছে: {trans?.isDeleted}</span> <CustomButton title="ডিলিট" color="error" onClick={() => handlePermanentDeleteTransaction(trans?.id || "")} /> </div></div>}
                                     </div>
                                 )
                             }) : <div className='w-full mt-[40px] bg-black-100/70 text-error text-center py-[30px] px-[10px] rounded-[8px] text-2xl'> কোন লেনদেন হয় নাই!</div>}
@@ -111,6 +169,7 @@ const CustomerDetals = () => {
                             submitButton={true}
                             closeButtonText='বাতিল'
                             submitButtonText='ওকে'
+                            className='!min-w-[77%] sm:!min-w-[70%] md:!min-w-[40%] lg:!min-w-[30vw] xl:!min-w-[20vw]'
                         >
                             <div className='flex flex-col gap-[20px]'>
                                 <div className='w-full flex items-center gap-[20px] my-[10px]'>

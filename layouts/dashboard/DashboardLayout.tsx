@@ -23,7 +23,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 
     return (
         <div className='bg-white font-poppins h-screen flex flex-col'>
-            <div className='w-full bg-white h-[72px] flex items-center justify-center fixed inset-0'>
+            <div className='w-full bg-white h-[72px] flex items-center justify-center z-[1000000] fixed inset-0'>
                 <div className='w-full sm:w-[400px] px-[10px] h-full flex items-center justify-between'>
                     <Image src={LOGO} alt='logo' width={200} className='' />
                     <CustomButton title='Log Out' size='medium' color='error' onClick={() => {

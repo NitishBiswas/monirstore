@@ -23,7 +23,11 @@ export async function getCustomerWithTransactions(phone: string): Promise<Custom
         const transactionsRef = collection(customerRef, 'transactions');
         const transactionsSnapshot = await getDocs(transactionsRef);
 
-        const transactions: Transaction[] = transactionsSnapshot.docs.map(doc => doc.data() as Transaction);
+        const transactions: Transaction[] = transactionsSnapshot.docs.map(transactionDoc => {
+            const data = transactionDoc.data() as Transaction;
+            return { ...data, id: transactionDoc.id };  // Add the document ID to the transaction
+        });
+
         customerData.totalDue = calculateIndividualTotalDue(transactions);
 
         return {
